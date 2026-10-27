@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sentence Analysis Walkthrough</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Carlito:wght@400;700&family=Playwrite+US+Trad:wght@300;400&display=swap">
+<style>
+/* Layout: a presentation. Sentence tabs across the top; the Montessori work mat as the stage with John's fixed question ladder beside it; the detective's question and John's note beneath. */
+:root{
+  --bg:#F5F6F0; --fg:#23271F; --muted:#666C5E; --line:#D7DBCB; --panel:#FFFFFF;
+  --accent:#4E6B38; --accent-ink:#FFFFFF; --accent-soft:#E3EAD8;
+  --mat:#E8DFCB; --mat-edge:#D5C9AE; --tape-ink:#2A2A2A;
+  --serif:"Century Schoolbook","New Century Schoolbook","C059","TeX Gyre Schola",Georgia,serif;
+  --sans:Calibri,Carlito,"Segoe UI",system-ui,sans-serif;
+  --hand:"Playwrite US Trad","Segoe Script","Bradley Hand",cursive;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#161913; --fg:#E6E9DE; --muted:#A0A694; --line:#343B2D; --panel:#1F231B;
+  --accent:#A3C186; --accent-ink:#141810; --accent-soft:#2B3523;
+  --mat:#D9CFB8; --mat-edge:#BFB294; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#161913; --fg:#E6E9DE; --muted:#A0A694; --line:#343B2D; --panel:#1F231B;
+  --accent:#A3C186; --accent-ink:#141810; --accent-soft:#2B3523;
+  --mat:#D9CFB8; --mat-edge:#BFB294; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1240px;margin:0 auto;display:grid;gap:16px}
+header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 24px}
+h1{font-family:var(--serif);font-weight:700;font-size:clamp(1.5rem,3vw,2.1rem);line-height:1.15;margin:0;text-wrap:balance}
+.byline{color:var(--muted);font-size:.95rem}
+.byline b{color:var(--fg)}
+.scenes{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.scene{flex:1 0 150px;text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:5px;padding:8px 12px;display:grid;gap:2px;font-weight:400}
+.scene b{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.scene span{font-family:var(--hand);font-size:.82rem;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scene[aria-current="true"]{border-color:var(--accent);box-shadow:inset 0 -3px 0 var(--accent)}
+.scene[aria-current="true"] b{color:var(--accent)}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:16px;align-items:start}
+@media (max-width:920px){.main{grid-template-columns:1fr}}
+.stage{background:var(--mat);border:1px solid var(--mat-edge);border-radius:6px;box-shadow:inset 0 0 0 6px color-mix(in srgb,var(--mat-edge) 45%,transparent)}
+.stage svg{display:block;width:100%;height:auto}
+.ladder{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:grid;gap:8px}
+.ladder h2{font-family:var(--serif);font-size:1.05rem;margin:0}
+.ladder p.sub{margin:0;color:var(--muted);font-size:.85rem;line-height:1.35}
+.ladder ol{list-style:none;margin:0;padding:0;display:grid;gap:4px;counter-reset:q}
+.ladder li{counter-increment:q;display:grid;grid-template-columns:22px 1fr;gap:0 8px;padding:6px 8px;border-radius:4px;border-left:4px solid transparent}
+.ladder li::before{content:counter(q);grid-row:span 3;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.ladder .lq{font-weight:700;font-size:.92rem;line-height:1.3}
+.ladder .lr{font-size:.78rem;color:var(--muted);display:flex;align-items:center;gap:6px}
+.ladder .sym{width:12px;height:12px;flex:none}
+.ladder .la{font-family:var(--hand);font-size:.82rem;line-height:1.6;min-height:0}
+.ladder .la.none{font-family:var(--sans);font-style:italic;font-size:.8rem;color:var(--muted)}
+.ladder li.now{background:var(--accent-soft);border-left-color:var(--accent)}
+.ladder li.now::before{color:var(--accent)}
+.ladder li.later{opacity:.42}
+.panel{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:18px}
+@media (max-width:720px){.panel{grid-template-columns:1fr}}
+.ask{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 20px;display:grid;gap:6px;align-content:start}
+.eyebrow{font-size:.78rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.q{font-family:var(--serif);font-size:1.4rem;line-height:1.25;margin:0;text-wrap:balance}
+.q.sent{font-family:var(--hand);font-size:1.15rem;line-height:1.7}
+.a{font-size:1.05rem;margin:0}
+.a span{font-family:var(--hand);font-size:.92rem}
+.note{padding:4px 0;display:grid;gap:8px;align-content:start}
+.term{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.term h3{font-family:var(--serif);font-size:1.25rem;margin:0}
+.chip{font-size:.8rem;font-weight:700;letter-spacing:.04em;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--fg)}
+.note p{margin:0;max-width:64ch}
+.controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;border-top:1px solid var(--line);padding-top:14px}
+button{font:inherit;font-weight:700;border-radius:4px;border:1px solid var(--line);background:var(--panel);color:var(--fg);padding:8px 16px;cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button:disabled{opacity:.4;cursor:default}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.track{display:flex;flex-wrap:wrap;gap:5px;align-items:center;flex:1 1 200px;justify-content:flex-end}
+.dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--muted);background:transparent;padding:0}
+.dot.done{background:var(--muted)}
+.dot.on{background:var(--accent);border-color:var(--accent)}
+.count{color:var(--muted);font-size:.9rem;font-variant-numeric:tabular-nums}
+footer{color:var(--muted);font-size:.85rem;max-width:90ch}
+.embed header,.embed footer{display:none}
+.embed body{padding-block:8px 12px}
+.grow{animation:grow .55s cubic-bezier(.2,.7,.2,1) both}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.pop{transform-box:fill-box;transform-origin:center;animation:pop .45s cubic-bezier(.3,1.5,.5,1) both}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.fade{animation:fade .5s ease both}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.d1{animation-delay:.25s}
+.tapeword{font-family:var(--hand);fill:var(--tape-ink)}
+.cardtext{font-family:var(--hand);fill:#1E1E1E}
+.arrowtext{font-family:var(--sans);font-weight:700;font-size:15px}
+.tag{font-family:var(--sans);font-weight:700;font-size:15px;fill:#3A3428}
+.hl{fill:#F3D36B;fill-opacity:.6}
+@media (prefers-reduced-motion:reduce){.grow,.pop,.fade{animation:none}}
+</style>
+
+<style>body{margin:0}</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Sentence Analysis, one question at a time</h1>
+    <div class="byline">John Archambault's sentences, simplest to most complex · ChalkLine prototype</div>
+  </header>
+
+  <nav class="scenes" id="scenes" aria-label="Sentences"></nav>
+
+  <div class="main">
+    <div class="stage">
+      <svg id="mat" viewBox="0 0 1000 640" role="img" aria-labelledby="matTitle">
+        <title id="matTitle">Sentence analysis work mat</title>
+        <defs><filter id="lift" x="-10%" y="-20%" width="120%" height="150%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity=".22"/></filter></defs>
+        <g id="tape"></g><g id="marks"></g><g id="board"></g>
+      </svg>
+    </div>
+    <aside class="ladder" aria-label="The questions, in order">
+      <h2>The questions, in order</h2>
+      <p class="sub">Every sentence starts at the top. Each part of the sentence is the answer to one question.</p>
+      <ol id="ladder"></ol>
+    </aside>
+  </div>
+
+  <section class="panel" aria-live="polite">
+    <div class="ask">
+      <div class="eyebrow" id="askLabel"></div>
+      <p class="q" id="q"></p>
+      <p class="a" id="a"></p>
+    </div>
+    <div class="note">
+      <div class="term"><h3 id="term"></h3><span class="chip" id="chip"></span></div>
+      <p id="note"></p>
+    </div>
+  </section>
+
+  <div class="controls">
+    <button id="back" type="button">Back</button>
+    <button id="next" type="button" class="primary">Next</button>
+    <button id="play" type="button">Play</button>
+    <span class="count" id="count"></span>
+    <div class="track" id="track"></div>
+  </div>
+
+  <footer>Sentences, questions and explanations come from John's recorded walkthrough. Symbols follow his description: the red circle (the predicate) is largest; black circles get smaller from subject to direct object to indirect object; adjectives are blue triangles, adverbs orange circles, and prepositional phrases sit in green parentheses. Use the arrow keys to step.</footer>
+</div>
+
+<script>
+(function(){
+const NS="http://www.w3.org/2000/svg";
+const C={red:"#B3261E",black:"#1C1C1C",blue:"#1E4F9C",ltblue:"#86BDE6",orange:"#E8952C",green:"#2F7D4A"};
+const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// The fixed question ladder
+const LADDER=[
+ {q:"What's going on?",role:"Simple predicate",sym:"red"},
+ {q:"Who or what?",role:"Simple subject",sym:"black"},
+ {q:"Whom or what?",role:"Direct object",sym:"black"},
+ {q:"To whom? For whom?",role:"Indirect object",sym:"black"},
+ {q:"Any more ands?",role:"Compounds",sym:"and"},
+ {q:"Which one? What kind? How many? How much?",role:"Adjectives",sym:"blue"},
+ {q:"When? Where? How?",role:"Adverbs",sym:"orange"}
+];
+
+// Fixed positions: each role always goes in the same place
+const P={x:500,y:320,r:64}, S={x:185,y:320,r:46}, DO={x:815,y:320,r:40}, IO={x:745,y:170,r:30};
+const S1={x:185,y:215,r:46}, S2={x:185,y:430,r:46};
+const T_THE={x:80,y:478}, T_TALL={x:262,y:500}, T_HIS={x:925,y:170}, T_SOME={x:860,y:488};
+const AV_Y={x:395,y:498,r:22}, AV_T={x:650,y:506,r:22};
+const PH_ADJ={x:430,y:115}, PH_ADV={x:650,y:556};
+
+const subj=(at,label)=>({t:"arrow",from:P,to:at,w:34,color:C.black,label:label||"who or what?",ink:"#fff"});
+const dobj={t:"arrow",from:P,to:DO,w:30,color:C.black,label:"whom or what?",ink:"#fff"};
+const iobj={t:"arrow",from:P,to:IO,w:28,color:C.black,label:"to whom? for whom?",ink:"#fff"};
+
+const SCENES=[
+{short:"Ben bought some popcorn.",lesson:"Lessons 2 and 3",taught:5,
+ words:["Ben","bought","some","popcorn."],
+ steps:[
+  {intro:true,q:"Ben bought some popcorn.",a:"The first three questions: predicate, subject, direct object.",term:"A sentence is like a crime scene",chip:"start here",
+   note:"The detective gets a call in the middle of the night, has to go down to the crime scene, and the first thing they're going to want to ask is: what's going on here? So the detective shows up at the scene of the sentence and asks, what's going on in the sentence?"},
+  {L:[[1,"bought"]],q:"What's going on in this sentence?",a:"Somebody <span>bought</span>.",term:"Simple predicate",chip:"red circle · largest",used:[1],
+   note:"The one word that answers that question is going to be a verb. But it's not just called a verb, it's called the simple predicate. It gets the largest symbol, a red circle, because the predicate is the most important word in the sentence.",
+   pieces:[{t:"circle",at:P,fill:C.red},{t:"card",w:[1],at:P,underline:true}]},
+  {L:[[2,"Ben"]],q:"Who or what bought?",a:"<span>Ben</span> bought.",term:"Simple subject",chip:"black circle · to the left",used:[0],
+   note:"It's going to be a noun, but not just any old noun. It's the noun that is doing the predicate. A sentence is like a solar system: the predicate is the sun, and the nouns relate to the predicate the way planets orbit the sun. So in sentence analysis they're circles rather than triangles.",
+   pieces:[subj(S),{t:"circle",at:S,fill:C.black,d:1},{t:"card",w:[0],at:S}]},
+  {L:[[3,"popcorn"]],q:"Whom or what did Ben buy?",a:"<span>Popcorn</span>.",term:"Direct object",chip:"black circle · straight across",used:[3],
+   note:"The popcorn isn't the one buying. It's the one being bought. An object is a noun that is being acted upon. It goes straight across to the right of the predicate, and another word for straight is direct. Go directly to jail. This is the direct object.",
+   pieces:[dobj,{t:"circle",at:DO,fill:C.black,d:1},{t:"card",w:[3],at:DO}]},
+  {L:[[4,null]],q:"To whom or for whom did Ben buy popcorn?",a:"No answer.",term:"No indirect object",chip:"ask anyway",used:[],
+   note:"If and only if you have a direct object, you next look for an indirect object. Here there's a direct object, so we ask. Nothing in this sentence answers to whom or for whom, so there is no indirect object.",pieces:[]},
+  {L:[[5,null]],ask:"Check for compounds",q:"Any more ands?",a:"No. The skeleton is finished.",term:"The skeleton of the sentence",chip:"red and black only",used:[],
+   note:"All you have right there are black arrows, black circles, and the red circle in the middle. What does your skeleton do for you? It gives you structure. Everything else hangs off of it.",
+   pieces:[{t:"skeleton",pts:[S,DO]}]},
+  {end:true,ask:"Check the tape",q:"Any words left?",a:"<span>Some</span>.",term:"Hanging off the skeleton",chip:"later lesson",used:[],
+   note:"Some is still on the tape. It isn't part of the skeleton. It tells us how much popcorn, so it will hang off of popcorn once we learn adjectives.",pieces:[],left:[2]}
+ ]},
+{short:"Ben bought John some popcorn.",lesson:"Lesson 3",taught:5,
+ words:["Ben","bought","John","some","popcorn."],
+ steps:[
+  {intro:true,q:"Ben bought John some popcorn.",a:"One new word in the sentence, and one new role: the indirect object.",term:"Same questions, same order",chip:"every sentence",
+   note:"Each lesson starts at the very beginning: what's going on in the sentence? That is how students restate where they've been before they add anything new."},
+  {L:[[1,"bought"]],q:"What's going on in this sentence?",a:"Somebody <span>bought</span>.",term:"Simple predicate",chip:"red circle",used:[1],
+   note:"Same first question, same answer as before: bought.",pieces:[{t:"circle",at:P,fill:C.red},{t:"card",w:[1],at:P,underline:true}]},
+  {L:[[2,"Ben"]],q:"Who or what bought?",a:"<span>Ben</span> bought.",term:"Simple subject",chip:"black circle",used:[0],
+   note:"Ben is the one doing the buying.",pieces:[subj(S),{t:"circle",at:S,fill:C.black,d:1},{t:"card",w:[0],at:S}]},
+  {L:[[3,"popcorn"]],q:"Whom or what did Ben buy?",a:"<span>Popcorn</span>.",term:"Direct object",chip:"black circle",used:[4],
+   note:"Ben did not buy John. He bought popcorn. So what's John doing in this sentence? What question is John answering?",pieces:[dobj,{t:"circle",at:DO,fill:C.black,d:1},{t:"card",w:[4],at:DO}]},
+  {L:[[4,"John"]],q:"To whom or for whom did Ben buy popcorn?",a:"For <span>John</span>.",term:"Indirect object",chip:"smallest black circle · diagonal",used:[2],
+   note:"The questions for the indirect object all start with a number: to whom or to what, for whom or for what. It's another noun coming off of the predicate, the smallest of the black circles. It doesn't go straight across. It goes indirectly, so I put it at about a 45 degree angle, upward to the right.",
+   pieces:[iobj,{t:"circle",at:IO,fill:C.black,d:1},{t:"card",w:[2],at:IO}]},
+  {L:[[5,null]],ask:"Check for compounds",q:"Any more ands?",a:"No. The skeleton is finished.",term:"The skeleton of the sentence",chip:"red and black only",used:[],
+   note:"Predicate, subject, direct object, indirect object. Everything else is going to be a modifier in some way, hanging off one of those words.",pieces:[{t:"skeleton",pts:[S,DO,IO]}]},
+  {end:true,ask:"Check the tape",q:"Any words left?",a:"<span>Some</span>.",term:"Hanging off the skeleton",chip:"later lesson",used:[],
+   note:"Some is still waiting on the tape. It will hang off of popcorn when we get to adjectives.",pieces:[],left:[3]}
+ ]},
+{short:"Ben and John bought some popcorn.",lesson:"Lesson 4",taught:5,
+ words:["Ben","and","John","bought","some","popcorn."],
+ steps:[
+  {intro:true,q:"Ben and John bought some popcorn.",a:"A compound subject: two people doing the same thing.",term:"Compound",chip:"and-tennas",
+   note:"Like a chemical compound: water is two hydrogens plus an oxygen. A compound in a sentence means more than one of something."},
+  {L:[[1,"bought"]],q:"What's going on in this sentence?",a:"Somebody <span>bought</span>.",term:"Simple predicate",chip:"red circle",used:[3],
+   note:"Start where we always start.",pieces:[{t:"circle",at:P,fill:C.red},{t:"card",w:[3],at:P,underline:true}]},
+  {L:[[2,"Ben"]],q:"Who or what bought?",a:"<span>Ben</span> bought.",term:"Simple subject",chip:"black circle",used:[0],
+   note:"Ben bought.",pieces:[subj(S1),{t:"circle",at:S1,fill:C.black,d:1},{t:"card",w:[0],at:S1}]},
+  {L:[[3,"popcorn"]],q:"Whom or what did Ben buy?",a:"<span>Popcorn</span>.",term:"Direct object",chip:"black circle",used:[5],
+   note:"He bought popcorn.",pieces:[dobj,{t:"circle",at:DO,fill:C.black,d:1},{t:"card",w:[5],at:DO}]},
+  {L:[[4,null]],q:"To whom or for whom?",a:"No answer.",term:"No indirect object",chip:"ask anyway",used:[],
+   note:"We have a direct object, so we look for an indirect object. There isn't one.",pieces:[]},
+  {L:[[5,"and: John"],[2,"John"]],ask:"Check for compounds",q:"But wait a minute, what about John?",a:"Who bought? <span>John</span> bought.",term:"Compound subject",chip:"each gets its own symbol",used:[1,2],
+   note:"There's a word in that sentence that whenever you see it, you need to stick up your two index fingers: your and-tennas. It tells you there's something else. It tells you that you're not done yet. We have two people that bought, two simple subjects, and they each deserve their own simple subject symbol.",
+   pieces:[{t:"antenna",i:1},subj(S2),{t:"circle",at:S2,fill:C.black,d:1},{t:"card",w:[2],at:S2}]},
+  {end:true,ask:"Check the tape",q:"Any words left?",a:"<span>Some</span>.",term:"The skeleton, with a compound subject",chip:"later lesson",used:[],
+   note:"The skeleton is finished with two subjects doing the same predicate. Some will hang off of popcorn when we get to adjectives.",pieces:[{t:"skeleton",pts:[S1,S2,DO]}],left:[4]}
+ ]},
+{short:"Stop.",lesson:"Lesson 4",taught:5,
+ words:["Stop."],
+ steps:[
+  {intro:true,q:"Stop.",a:"The fewest words you can have to make a sentence.",term:"Hard-to-find subjects",chip:"one word",
+   note:"I lead them astray a little bit: you need a verb, and don't you need somebody doing that? The right answer is one word. No is not a sentence, because no is not a verb. But how about stop? Stop can be a complete sentence."},
+  {L:[[1,"Stop"]],q:"What's going on in this sentence?",a:"Somebody <span>stops</span>.",term:"Simple predicate",chip:"red circle",used:[0],
+   note:"Stop is a verb. Stop is the predicate. The question now is, who stops?",pieces:[{t:"circle",at:P,fill:C.red},{t:"card",w:[0],at:P,underline:true}]},
+  {L:[[2,"(you)"]],q:"Who stops?",a:"You. It isn't written, but you understand it.",term:"Understood you",chip:"hollow black circle",used:[],
+   note:"If I am talking to you and I say stop, you know I'm talking about you. Why is this subject hard to find? Because it's not there. We still put a black arrow to the left of the predicate, but we use a hollow black circle because the subject's not actually there, and we label it with the word you in parentheses.",
+   pieces:[subj(S),{t:"circle",at:S,hollow:true,d:1,label:"(you)"}]},
+  {L:[[3,null],[4,null]],q:"Whom or what?",a:"No answer, and so no indirect object either.",term:"No objects",chip:"nothing to the right",used:[],
+   note:"Nothing is being stopped. You definitely will not have an indirect object unless you first have a direct object.",pieces:[]},
+  {L:[[5,null]],end:true,ask:"What kind of sentence is this?",q:"It's a command.",a:"An <span>imperative</span> sentence.",term:"Imperative",chip:"period or exclamation point",used:[],
+   note:"Who gives a lot of orders? A king, and in Rome, an emperor. Things relating to the emperor are imperial. A command sentence is called an imperative sentence. If something is imperative, it means you must do it.",
+   pieces:[{t:"skeleton",pts:[S]}]}
+ ]},
+{short:"The tall fellow bought his friend some popcorn yesterday at the theater.",lesson:"Lessons 5 and 6",taught:7,
+ words:["The","tall","fellow","bought","his","friend","some","popcorn","yesterday","at","the","theater."],
+ steps:[
+  {intro:true,q:"The tall fellow bought his friend some popcorn yesterday at the theater.",a:"Build the skeleton, then hang every other word on it.",term:"Modifiers",chip:"adjectives and adverbs",
+   note:"First the skeleton: predicate, subject, direct object, indirect object. Then we go back to the very beginning of the sentence and look at any words we haven't yet covered."},
+  {L:[[1,"bought"]],q:"What's going on in this sentence?",a:"Somebody <span>bought</span>.",term:"Simple predicate",chip:"red circle",used:[3],
+   note:"Same first question, every time.",pieces:[{t:"circle",at:P,fill:C.red},{t:"card",w:[3],at:P,underline:true}]},
+  {L:[[2,"fellow"]],q:"Who or what bought?",a:"The <span>fellow</span> bought.",term:"Simple subject",chip:"black circle",used:[2],
+   note:"One word answers: fellow. The and tall come later.",pieces:[subj(S),{t:"circle",at:S,fill:C.black,d:1},{t:"card",w:[2],at:S}]},
+  {L:[[3,"popcorn"]],q:"Whom or what did the fellow buy?",a:"<span>Popcorn</span>.",term:"Direct object",chip:"black circle",used:[7],
+   note:"Straight across: the direct object.",pieces:[dobj,{t:"circle",at:DO,fill:C.black,d:1},{t:"card",w:[7],at:DO}]},
+  {L:[[4,"friend"]],q:"For whom did the fellow buy popcorn?",a:"For his <span>friend</span>.",term:"Indirect object",chip:"smallest black circle",used:[5],
+   note:"For whom: the question starts with a number. Up on the diagonal.",pieces:[iobj,{t:"circle",at:IO,fill:C.black,d:1},{t:"card",w:[5],at:IO}]},
+  {L:[[5,null]],ask:"Check for compounds",q:"Any more ands?",a:"No. The skeleton is finished.",term:"The skeleton of the sentence",chip:"now go back to the beginning",used:[],
+   note:"Go back to the very beginning of the sentence and look at any words we haven't done. Draw a thin line through each word as we've used it, so it's easier to keep track of the words you haven't used yet.",
+   pieces:[{t:"skeleton",pts:[S,DO,IO]}]},
+  {L:[[6,"the (D)"]],q:"Which fellow?",a:"<span>The</span> fellow.",term:"Article acting as an adjective",chip:"light blue · D",used:[0],
+   note:"In sentence analysis, articles are going to act as adjectives because they are answering one of the adjective questions. The tells us which fellow, the specific fellow. It points him out, so it's a determiner.",
+   pieces:[{t:"arrow",from:S,to:T_THE,w:24,color:C.blue,label:"which one?",ink:"#fff",tri:true},{t:"tri",at:T_THE,size:22,fill:C.ltblue,d:1},{t:"card",w:[0],at:T_THE,tri:true,tag:"D"}]},
+  {L:[[6,"tall (A)"]],q:"What kind of fellow?",a:"A <span>tall</span> fellow.",term:"Adjective, attributive",chip:"dark blue · A",used:[1],
+   note:"Every adjective answers one of four questions: what kind, which one, how many, how much. Tall tells us an attribute of the fellow, so it's an attributive.",
+   pieces:[{t:"arrow",from:S,to:T_TALL,w:24,color:C.blue,label:"what kind?",ink:"#fff",tri:true},{t:"tri",at:T_TALL,size:30,fill:C.blue,d:1},{t:"card",w:[1],at:T_TALL,tri:true,tag:"A"}]},
+  {L:[[6,"his (D)"]],q:"Whose friend?",a:"<span>His</span> friend.",term:"Adjective, determiner",chip:"dark blue · D",used:[4],
+   note:"His tells us whose friend, which is a variation on which one. It's a determiner.",
+   pieces:[{t:"arrow",from:IO,to:T_HIS,w:22,color:C.blue,label:"whose?",ink:"#fff",tri:true},{t:"tri",at:T_HIS,size:30,fill:C.blue,d:1},{t:"card",w:[4],at:T_HIS,tri:true,tag:"D"}]},
+  {L:[[6,"some (D)"]],q:"How much popcorn?",a:"<span>Some</span> popcorn.",term:"Adjective, determiner",chip:"dark blue · D",used:[6],
+   note:"A lot of popcorn? A little bit of popcorn? Some popcorn. It's telling us how much.",
+   pieces:[{t:"arrow",from:DO,to:T_SOME,w:24,color:C.blue,label:"how much?",ink:"#fff",tri:true},{t:"tri",at:T_SOME,size:30,fill:C.blue,d:1},{t:"card",w:[6],at:T_SOME,tri:true,tag:"D"}]},
+  {L:[[7,"yesterday (time)"]],q:"Bought when?",a:"Bought <span>yesterday</span>.",term:"Adverb of time",chip:"orange circle · label the arrow",used:[8],
+   note:"Put the word right next to the word you think it might be describing and see if it sounds right. Yesterday fellow? No. Bought yesterday. It's really relating to the verb, so it's an adverb, and an adverb that answers when is an adverb of time.",
+   pieces:[{t:"arrow",from:P,to:AV_Y,w:26,color:C.orange,label:"time · when?",ink:"#2A1B05"},{t:"circle",at:AV_Y,fill:C.orange,d:1},{t:"card",w:[8],at:AV_Y,below:true}]},
+  {L:[[7,"at the theater (place)"]],q:"Bought where?",a:"Bought <span>at the theater</span>.",term:"Prepositional phrase acting as an adverb",chip:"green parentheses · orange arrow",used:[9,10,11],
+   note:"All prepositional phrases go from P to OP, from preposition to object of the preposition. In other words, all prepositional phrases pop. We put them in green parentheses and attach them to the word they're describing, with an orange arrow if they're acting as an adverb. Then we say what kind of adverb: this one tells us where, so it's an adverb of place.",
+   pieces:[{t:"arrow",from:P,to:PH_ADV,w:26,color:C.orange,label:"place · where?",ink:"#2A1B05",phrase:true},{t:"card",w:[9,10,11],at:PH_ADV,parens:true,phrase:true}]},
+  {end:true,ask:"Check the tape",q:"Any words left?",a:"Every word has a role.",term:"The whole sentence, analyzed",chip:"start over every time",used:[],
+   note:"Every single sentence starts with what's going on in the sentence. You're going to hear me say that at least 500 times this year. I want that to be a well-trodden pathway in their brains.",pieces:[]}
+ ]},
+{short:"The man with the yellow hat walked Curious George to school.",lesson:"Lesson 6",taught:7,
+ words:["The","man","with","the","yellow","hat","walked","Curious George","to","school."],
+ steps:[
+  {intro:true,q:"The man with the yellow hat walked Curious George to school.",a:"Two prepositional phrases: one acting as an adjective, one as an adverb.",term:"Phrases",chip:"more than one word, one role",
+   note:"A phrase is more than one word working together to act as one role in the sentence. Prepositional phrases are going to act as adjectives or adverbs, and the question they answer tells you which."},
+  {L:[[1,"walked"]],q:"What's going on in this sentence?",a:"Somebody <span>walked</span>.",term:"Simple predicate",chip:"red circle",used:[6],
+   note:"Start at the top of the ladder.",pieces:[{t:"circle",at:P,fill:C.red},{t:"card",w:[6],at:P,underline:true}]},
+  {L:[[2,"man"]],q:"Who or what walked?",a:"The <span>man</span> walked.",term:"Simple subject",chip:"black circle",used:[1],
+   note:"Hat is a noun too, but the hat isn't doing the walking. The man is.",pieces:[subj(S),{t:"circle",at:S,fill:C.black,d:1},{t:"card",w:[1],at:S}]},
+  {L:[[3,"Curious George"]],q:"Whom or what did the man walk?",a:"<span>Curious George</span>.",term:"Direct object",chip:"black circle",used:[7],
+   note:"Curious George is the one being walked, so he's the direct object. His name is one name, so it goes on one card.",pieces:[dobj,{t:"circle",at:DO,fill:C.black,d:1},{t:"card",w:[7],at:DO}]},
+  {L:[[4,null]],q:"To whom or for whom did the man walk Curious George?",a:"No answer.",term:"No indirect object",chip:"to school answers where",used:[],
+   note:"To school starts with to, but it doesn't answer to whom. It tells us where he walked him. That's a different question, and we'll get to it.",pieces:[]},
+  {L:[[5,null]],ask:"Check for compounds",q:"Any more ands?",a:"No. The skeleton is finished.",term:"The skeleton of the sentence",chip:"back to the beginning",used:[],
+   note:"Now go back to the very beginning and look at the words we haven't used.",pieces:[{t:"skeleton",pts:[S,DO]}]},
+  {L:[[6,"the (D)"]],q:"Which man?",a:"<span>The</span> man.",term:"Article acting as an adjective",chip:"light blue · D",used:[0],
+   note:"The tells us which man. It's a determiner.",
+   pieces:[{t:"arrow",from:S,to:T_THE,w:24,color:C.blue,label:"which one?",ink:"#fff",tri:true},{t:"tri",at:T_THE,size:22,fill:C.ltblue,d:1},{t:"card",w:[0],at:T_THE,tri:true,tag:"D"}]},
+  {L:[[6,"with the yellow hat"]],q:"Which man?",a:"The man <span>with the yellow hat</span>.",term:"Prepositional phrase acting as an adjective",chip:"green parentheses · blue arrow",used:[2,3,4,5],
+   note:"With the yellow hat is not coming off of walked. It's not walked with the yellow hat. It's the man with the yellow hat. So it's describing man, and because man's a noun, it's acting as an adjective. It goes in green parentheses on a blue arrow.",
+   pieces:[{t:"arrow",from:S,to:PH_ADJ,w:24,color:C.blue,label:"which one?",ink:"#fff",phrase:true},{t:"card",w:[2,3,4,5],at:PH_ADJ,parens:true,phrase:true}]},
+  {L:[[7,"to school (place)"]],q:"Walked where?",a:"Walked <span>to school</span>.",term:"Prepositional phrase acting as an adverb",chip:"green parentheses · orange arrow",used:[8,9],
+   note:"To school goes from P to OP: it pops. It relates to walked and tells us where, so it hangs off the predicate on an orange arrow as an adverb of place.",
+   pieces:[{t:"arrow",from:P,to:PH_ADV,w:26,color:C.orange,label:"place · where?",ink:"#2A1B05",phrase:true},{t:"card",w:[8,9],at:PH_ADV,parens:true,phrase:true}]},
+  {end:true,ask:"Check the tape",q:"Any words left?",a:"Every word has a role.",term:"Same preposition, different jobs",chip:"the question decides",used:[],
+   note:"The same kind of phrase can do two different jobs. With the yellow hat answers which man, so it's an adjective. To school answers where he walked, so it's an adverb. It's all about the question.",pieces:[]}
+ ]}
+];
+
+// Flatten for navigation
+const FLAT=[]; SCENES.forEach((sc,si)=>sc.steps.forEach((st,i)=>FLAT.push({si,i})));
+const svg=document.getElementById("mat"), tapeG=document.getElementById("tape"), marksG=document.getElementById("marks"), board=document.getElementById("board");
+let pos=0, tapePos=[], tapeScene=-1, playing=null;
+
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+
+function layoutTape(si){
+  tapeG.innerHTML=""; tapeScene=si; const W=SCENES[si].words;
+  el("path",{d:"M14,22 L986,22 L982,30 L986,38 L982,46 L986,54 L986,66 L14,66 L18,58 L14,50 L18,42 L14,34 L18,26 Z",fill:"#FFFEF7",stroke:"#D8D2BF","stroke-width":1,filter:"url(#lift)"},tapeG);
+  let size=W.length===1?26:21, gap=18, widths=[];
+  const probe=el("text",{class:"tapeword","font-size":size,x:0,y:-100},tapeG);
+  W.forEach(w=>{probe.textContent=w;widths.push(probe.getComputedTextLength());}); probe.remove();
+  let total=widths.reduce((a,b)=>a+b,0)+gap*(W.length-1);
+  const scale=Math.min(1,920/total); size*=scale; gap*=scale; widths=widths.map(w=>w*scale); total*=scale;
+  let x=500-total/2; tapePos=[];
+  W.forEach((w,i)=>{
+    const g=el("g",{"data-i":i},tapeG);
+    el("rect",{class:"hl",x:x-3,y:28,width:widths[i]+6,height:32,rx:3,style:"opacity:0"},g);
+    const t=el("text",{class:"tapeword","font-size":size,x:x,y:44,"dominant-baseline":"central"},g);t.textContent=w;
+    el("line",{x1:x-2,y1:58,x2:x+widths[i]+2,y2:30,stroke:"#7A7466","stroke-width":1.6,opacity:0},g);
+    tapePos.push({x:x+widths[i]/2,y:44,w:widths[i]});
+    x+=widths[i]+gap;
+  });
+}
+
+function edgePoint(a,b,ra,rb){const dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy);return{x1:a.x+dx/L*ra,y1:a.y+dy/L*ra,ang:Math.atan2(dy,dx)*180/Math.PI,len:L-ra-rb};}
+function drawArrow(p,parent,anim){
+  const ra=(p.from.r||0)+4, rb=p.tri?34:p.phrase?30:((p.to.r||0)+2);
+  const g=edgePoint(p.from,p.to,ra,rb);
+  const outer=el("g",{transform:`translate(${g.x1},${g.y1}) rotate(${g.ang})`},parent);
+  const inner=el("g",{class:anim?"grow":""},outer);
+  const L=g.len,W=p.w,tip=W*.7;
+  el("polygon",{points:`0,${-W/2} ${L-tip},${-W/2} ${L},0 ${L-tip},${W/2} 0,${W/2}`,fill:p.color},inner);
+  const flip=Math.abs(g.ang)>90, tx=(L-tip*.6)/2;
+  const t=el("text",{class:"arrowtext",x:tx,y:0,"text-anchor":"middle","dominant-baseline":"central",fill:p.ink,transform:flip?`rotate(180 ${tx} 0)`:""},inner);
+  t.textContent=p.label; if(W<26) t.setAttribute("font-size","13.5");
+}
+function drawCircle(p,parent,anim){
+  const g=el("g",{class:anim?("pop"+(p.d?" d1":"")):""},parent);
+  if(p.hollow){ el("circle",{cx:p.at.x,cy:p.at.y,r:p.at.r-2.5,fill:"none",stroke:C.black,"stroke-width":5},g); }
+  else el("circle",{cx:p.at.x,cy:p.at.y,r:p.at.r,fill:p.fill},g);
+  if(p.label){const t=el("text",{class:"cardtext","font-size":24,x:p.at.x,y:p.at.y-p.at.r-22,"text-anchor":"middle","dominant-baseline":"central"},g);t.textContent=p.label;}
+}
+function drawTri(p,parent,anim){
+  const s=p.size,h=s*0.87,x=p.at.x,y=p.at.y-22;
+  const g=el("g",{class:anim?("pop"+(p.d?" d1":"")):""},parent);
+  el("polygon",{points:`${x},${y-h} ${x-s/2},${y} ${x+s/2},${y}`,fill:p.fill},g);
+}
+function crescent(r){return `M ${-r},0 A ${r} ${r} 0 0 1 ${r},0 A ${r} ${r*0.62} 0 0 0 ${-r},0 Z`;}
+function drawCard(p,parent,anim){
+  const text=p.w.map(i=>SCENES[tapeScene].words[i]).join(" ");
+  const g=el("g",{},parent);
+  const t=el("text",{class:"cardtext","font-size":24,x:0,y:1,"text-anchor":"middle","dominant-baseline":"central"},g);
+  t.textContent=text;
+  const tw=t.getComputedTextLength(), w=tw+30, h=46;
+  g.insertBefore(el("rect",{x:-w/2,y:-h/2,width:w,height:h,fill:"#FFFFFF",stroke:"#BDB7A6","stroke-width":1,filter:"url(#lift)"}),t);
+  if(p.tag){const tg=el("text",{class:"tag",x:w/2+8,y:1,"dominant-baseline":"central"},g);tg.textContent=p.tag;}
+  if(p.underline) el("line",{x1:-tw/2,y1:15,x2:tw/2,y2:15,stroke:C.red,"stroke-width":2.5},g);
+  let cx=p.at.x; cx=Math.min(Math.max(cx,15+w/2),985-w/2);
+  const cy=p.below?p.at.y+p.at.r+30:p.phrase?p.at.y:(p.tri?p.at.y+14:(p.at.r?p.at.y-p.at.r-30:p.at.y));
+  const target=`translate(${cx}px,${cy}px)`;
+  if(anim&&!reduce){
+    const xs=p.w.map(i=>tapePos[i].x), sx=(Math.min(...xs)+Math.max(...xs))/2;
+    g.animate([{transform:`translate(${sx}px,44px) scale(.7)`,opacity:.3},{transform:`translate(${sx}px,90px) scale(.95)`,opacity:1,offset:.25},{transform:target}],{duration:1050,delay:p.parens?0:450,easing:"cubic-bezier(.3,.7,.2,1)",fill:"both"});
+  } else g.style.transform=target;
+  if(p.parens){
+    const off=w/2+14;
+    [[-1,-90],[1,90]].forEach(([side,rot])=>{
+      const b=el("path",{d:crescent(25),fill:C.green},parent);
+      const end=`translate(${cx+side*off}px,${cy}px) rotate(${rot}deg)`;
+      if(anim&&!reduce){
+        b.animate([{transform:`translate(${cx+side*42}px,${cy-96}px) rotate(0deg)`,opacity:0},{transform:`translate(${cx+side*42}px,${cy-96}px) rotate(0deg)`,opacity:1,offset:.3},{transform:end}],{duration:1500,delay:900,easing:"cubic-bezier(.4,0,.2,1)",fill:"both"});
+      } else b.style.transform=end;
+    });
+  }
+}
+function drawSkeleton(p,parent,anim){
+  const g=el("g",{class:anim?"fade":""},parent);
+  const d=p.pts.map(pt=>`M ${P.x},${P.y} L ${pt.x},${pt.y}`).join(" ");
+  el("path",{d,stroke:"#FFFFFF","stroke-width":130,"stroke-linecap":"round",fill:"none",opacity:.3},g);
+  const t=el("text",{x:500,y:P.y+P.r+70,"text-anchor":"middle",class:"tag","font-size":17},g);t.textContent="THE SKELETON";
+}
+function drawAntenna(i,anim){
+  const tp=tapePos[i]; if(!tp) return;
+  const g=el("g",{class:anim?"pop":""},marksG);
+  [[-1],[1]].forEach(([s])=>{
+    el("line",{x1:tp.x+s*6,y1:26,x2:tp.x+s*14,y2:8,stroke:"#3A3428","stroke-width":2.5,"stroke-linecap":"round"},g);
+    el("circle",{cx:tp.x+s*14,cy:7,r:4,fill:C.red},g);
+  });
+}
+
+function render(anim){
+  const {si,i}=FLAT[pos], sc=SCENES[si];
+  if(tapeScene!==si) layoutTape(si);
+  board.innerHTML=""; marksG.innerHTML="";
+  const bg=el("g",{},board), arrows=el("g",{},board), shapes=el("g",{},board), cards=el("g",{},board);
+  let skel=null;
+  for(let s=1;s<=i;s++){
+    const a=anim&&s===i;
+    (sc.steps[s].pieces||[]).forEach(p=>{
+      if(p.t==="skeleton") skel={p,a};
+      else if(p.t==="arrow") drawArrow(p,arrows,a);
+      else if(p.t==="circle") drawCircle(p,shapes,a);
+      else if(p.t==="tri") drawTri(p,shapes,a);
+      else if(p.t==="card") drawCard(p,cards,a);
+      else if(p.t==="antenna") drawAntenna(p.i,a);
+    });
+    if(skel && sc.steps[s].pieces && sc.steps[s].pieces.some(p=>p.t==="skeleton")) skel.fresh=(s===i);
+  }
+  if(skel && skel.fresh) drawSkeleton(skel.p,bg,skel.a);
+  // tape state
+  const usedBefore=new Set(), cur=new Set(sc.steps[i].used||[]), left=new Set(sc.steps[i].left||[]);
+  for(let s=1;s<i;s++) (sc.steps[s].used||[]).forEach(k=>usedBefore.add(k));
+  tapeG.querySelectorAll("g[data-i]").forEach(g=>{
+    const k=+g.dataset.i;
+    g.querySelector("rect").style.opacity=(cur.has(k)||left.has(k))?1:0;
+    g.querySelector("line").setAttribute("opacity",(usedBefore.has(k)||cur.has(k))?1:0);
+    g.querySelector("text").setAttribute("opacity",usedBefore.has(k)?.45:1);
+  });
+  // ladder
+  const answers=LADDER.map(()=>({asked:false,vals:[]})); let now=-1;
+  for(let s=1;s<=i;s++){ (sc.steps[s].L||[]).forEach(([k,v])=>{answers[k-1].asked=true; if(v) answers[k-1].vals.push(v); if(s===i) now=k-1;}); }
+  document.querySelectorAll("#ladder li").forEach((li,k)=>{
+    li.classList.toggle("now",k===now); li.classList.toggle("later",k>=sc.taught);
+    const la=li.querySelector(".la"), A=answers[k];
+    if(k>=sc.taught){la.className="la none";la.textContent="a later lesson";}
+    else if(A.vals.length){la.className="la";la.textContent=A.vals.join(" · ");}
+    else if(A.asked){la.className="la none";la.textContent=k===4?"none":"no answer";}
+    else {la.className="la";la.textContent="";}
+  });
+  // panel
+  const st=sc.steps[i];
+  document.getElementById("askLabel").textContent=st.intro?`Sentence ${si+1} of ${SCENES.length} · ${sc.lesson}`:(st.ask||"The detective asks");
+  const q=document.getElementById("q"); q.textContent=st.q; q.classList.toggle("sent",!!st.intro);
+  document.getElementById("a").innerHTML=st.a;
+  document.getElementById("term").textContent=st.term;
+  document.getElementById("chip").textContent=st.chip;
+  document.getElementById("note").textContent=st.note;
+  document.getElementById("matTitle").textContent="Sentence analysis of: "+sc.short;
+  document.getElementById("count").textContent=`Sentence ${si+1} · step ${i+1} of ${sc.steps.length}`;
+  document.getElementById("back").disabled=pos===0;
+  document.getElementById("next").disabled=pos===FLAT.length-1;
+  document.querySelectorAll(".scene").forEach((b,k)=>b.setAttribute("aria-current",k===si?"true":"false"));
+  const track=document.getElementById("track"); track.innerHTML="";
+  sc.steps.forEach((s,k)=>{const d=document.createElement("button");d.type="button";d.className="dot"+(k===i?" on":k<i?" done":"");d.setAttribute("aria-label",`Step ${k+1}: ${s.term}`);d.addEventListener("click",()=>{stop();go(FLAT.findIndex(f=>f.si===si&&f.i===k),k===i+1);});track.appendChild(d);});
+}
+
+function buildChrome(){
+  const lad=document.getElementById("ladder");
+  const symSvg={red:`<svg class="sym" viewBox="0 0 12 12"><circle cx="6" cy="6" r="6" fill="${C.red}"/></svg>`,black:`<svg class="sym" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill="${C.black}"/></svg>`,
+    blue:`<svg class="sym" viewBox="0 0 12 12"><polygon points="6,1 11,11 1,11" fill="${C.blue}"/></svg>`,orange:`<svg class="sym" viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.5" fill="${C.orange}"/></svg>`,
+    and:`<svg class="sym" viewBox="0 0 12 12"><line x1="4" y1="11" x2="2" y2="3" stroke="currentColor" stroke-width="1.6"/><line x1="8" y1="11" x2="10" y2="3" stroke="currentColor" stroke-width="1.6"/><circle cx="2" cy="2.5" r="1.8" fill="${C.red}"/><circle cx="10" cy="2.5" r="1.8" fill="${C.red}"/></svg>`};
+  LADDER.forEach(l=>{const li=document.createElement("li");li.innerHTML=`<span class="lq"></span><span class="lr">${symSvg[l.sym]}<span></span></span><span class="la"></span>`;li.querySelector(".lq").textContent=l.q;li.querySelector(".lr span").textContent=l.role;lad.appendChild(li);});
+  const nav=document.getElementById("scenes");
+  SCENES.forEach((sc,k)=>{const b=document.createElement("button");b.type="button";b.className="scene";b.innerHTML=`<b>Sentence ${k+1}</b><span></span>`;b.querySelector("span").textContent=sc.short;b.title=sc.short;b.addEventListener("click",()=>{stop();go(FLAT.findIndex(f=>f.si===k&&f.i===0),false);});nav.appendChild(b);});
+}
+function go(n,anim){pos=Math.max(0,Math.min(FLAT.length-1,n));render(anim);}
+function stop(){if(playing){clearInterval(playing);playing=null;document.getElementById("play").textContent="Play";}}
+document.getElementById("next").addEventListener("click",()=>{stop();go(pos+1,true);});
+document.getElementById("back").addEventListener("click",()=>{stop();go(pos-1,false);});
+document.getElementById("play").addEventListener("click",e=>{
+  if(playing){stop();return;}
+  e.target.textContent="Pause";
+  playing=setInterval(()=>{ if(pos>=FLAT.length-1){stop();return;} go(pos+1,true); },4800);
+});
+document.addEventListener("keydown",e=>{
+  if(e.key==="ArrowRight"){stop();go(pos+1,true);} else if(e.key==="ArrowLeft"){stop();go(pos-1,false);}
+});
+
+buildChrome();
+// Deep link: #s2-4 opens sentence 2 at step 4; add -embed to hide the page header and footer inside a lesson page
+const dl=/^#s(\d+)(?:-(\d+))?/.exec(location.hash||"");
+if(dl){const si=Math.min(SCENES.length,Math.max(1,+dl[1]))-1, st=Math.min(SCENES[si].steps.length,Math.max(1,+(dl[2]||1)))-1; const k=FLAT.findIndex(f=>f.si===si&&f.i===st); if(k>=0) pos=k;}
+if(/embed/.test(location.hash||"")) document.documentElement.classList.add("embed");
+const start=()=>{tapeScene=-1;render(false);};
+const fontsReady=(document.fonts&&document.fonts.load)?Promise.all([document.fonts.load('21px "Playwrite US Trad"'),document.fonts.load('24px "Playwrite US Trad"')]).catch(()=>{}):Promise.resolve();
+fontsReady.then(start,start);
+if(document.fonts&&document.fonts.addEventListener) document.fonts.addEventListener("loadingdone",()=>{tapeScene=-1;render(false);});
+})();
+</script>
+
+</body>
+</html>
