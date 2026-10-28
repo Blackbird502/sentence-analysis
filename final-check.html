@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sentence Analysis Final Check</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Carlito:wght@400;700&family=Playwrite+US+Trad:wght@400&display=swap">
+<style>
+/* Layout: the work mat as the stage with John's question ladder beside it; the current question and its choices beneath. */
+:root{
+  --bg:#F5F6F0; --fg:#23271F; --muted:#666C5E; --line:#D7DBCB; --panel:#FFFFFF;
+  --accent:#4E6B38; --accent-ink:#FFFFFF; --accent-soft:#E3EAD8; --bad:#9C2B22; --bad-soft:#F6E3E0;
+  --mat:#E8DFCB; --mat-edge:#D5C9AE;
+  --serif:"Century Schoolbook","New Century Schoolbook","C059","TeX Gyre Schola",Georgia,serif;
+  --sans:Calibri,Carlito,"Segoe UI",system-ui,sans-serif;
+  --hand:"Playwrite US Trad","Segoe Script","Bradley Hand",cursive;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#161913; --fg:#E6E9DE; --muted:#A0A694; --line:#343B2D; --panel:#1F231B;
+  --accent:#A3C186; --accent-ink:#141810; --accent-soft:#2B3523; --bad:#E58A80; --bad-soft:#3A2220;
+  --mat:#D9CFB8; --mat-edge:#BFB294; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#161913; --fg:#E6E9DE; --muted:#A0A694; --line:#343B2D; --panel:#1F231B;
+  --accent:#A3C186; --accent-ink:#141810; --accent-soft:#2B3523; --bad:#E58A80; --bad-soft:#3A2220;
+  --mat:#D9CFB8; --mat-edge:#BFB294; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:17px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1240px;margin:0 auto;display:grid;gap:16px}
+header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 24px}
+h1{font-family:var(--serif);font-size:clamp(1.5rem,3vw,2.1rem);line-height:1.15;margin:0;text-wrap:balance}
+.byline{color:var(--muted);font-size:.95rem}
+.embed header,.embed footer{display:none}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:20px 24px}
+.intro{display:grid;gap:12px;max-width:820px}
+.intro h2,.results h2{font-family:var(--serif);font-size:1.5rem;margin:0}
+.intro p,.intro li{margin:0;max-width:68ch}
+.intro ul{margin:0;padding-left:22px;display:grid;gap:6px}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:16px;align-items:start}
+@media (max-width:920px){.main{grid-template-columns:1fr}}
+.stage{background:var(--mat);border:1px solid var(--mat-edge);border-radius:6px;box-shadow:inset 0 0 0 6px color-mix(in srgb,var(--mat-edge) 45%,transparent)}
+.stage svg{display:block;width:100%;height:auto}
+.ladder{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 16px;display:grid;gap:6px}
+.ladder h2{font-family:var(--serif);font-size:1.05rem;margin:0 0 4px}
+.ladder ol{list-style:none;margin:0;padding:0;display:grid;gap:4px;counter-reset:q}
+.ladder li{counter-increment:q;display:grid;grid-template-columns:22px 1fr;gap:0 8px;padding:6px 8px;border-radius:4px;border-left:4px solid transparent}
+.ladder li::before{content:counter(q);grid-row:span 2;font-weight:700;color:var(--muted)}
+.ladder .lq{font-weight:700;font-size:.9rem;line-height:1.3}
+.ladder .la{font-family:var(--hand);font-size:.8rem;line-height:1.6}
+.ladder .la.none{font-family:var(--sans);font-style:italic;color:var(--muted)}
+.ladder li.now{background:var(--accent-soft);border-left-color:var(--accent)}
+.ask{display:grid;gap:10px}
+.eyebrow{font-size:.78rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.q{font-family:var(--serif);font-size:1.4rem;line-height:1.25;margin:0;text-wrap:balance}
+.how{margin:0;color:var(--muted)}
+.choices{display:flex;flex-wrap:wrap;gap:8px}
+button{font:inherit;font-weight:700;border-radius:4px;border:1px solid var(--line);background:var(--panel);color:var(--fg);padding:8px 14px;cursor:pointer}
+button:hover:not(:disabled){border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button:disabled{opacity:.45;cursor:default}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.fb{margin:0;padding:8px 12px;border-left:4px solid var(--accent);background:var(--accent-soft);border-radius:0 4px 4px 0}
+.fb.no{border-color:var(--bad);background:var(--bad-soft)}
+.status{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;justify-content:space-between;color:var(--muted);font-size:.92rem}
+.dots{display:flex;gap:6px}
+.dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--muted)}
+.dot.on{border-color:var(--accent);background:var(--accent)}
+.dot.ok{background:var(--accent);border-color:var(--accent);opacity:.55}
+.dot.miss{background:var(--bad);border-color:var(--bad);opacity:.6}
+.results{display:grid;gap:14px;max-width:860px}
+.results table{border-collapse:collapse;width:100%}
+.results td,.results th{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.results td.s{font-family:var(--hand);font-size:.9rem}
+.form{display:grid;gap:10px;max-width:520px}
+.form label{display:grid;gap:4px;font-weight:700}
+.form input{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:4px;background:var(--panel);color:var(--fg)}
+.small{font-size:.88rem;color:var(--muted);margin:0}
+footer{color:var(--muted);font-size:.85rem;max-width:90ch}
+.tapehit{cursor:pointer}
+.tapehit:hover rect.hit{fill:#F3D36B;fill-opacity:.35}
+.grow{animation:grow .55s cubic-bezier(.2,.7,.2,1) both}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.pop{transform-box:fill-box;transform-origin:center;animation:pop .45s cubic-bezier(.3,1.5,.5,1) both}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.tapeword{font-family:var(--hand);fill:#2A2A2A}
+.cardtext{font-family:var(--hand);fill:#1E1E1E}
+.arrowtext{font-family:var(--sans);font-weight:700;font-size:15px}
+.tag{font-family:var(--sans);font-weight:700;font-size:15px;fill:#3A3428}
+@media (prefers-reduced-motion:reduce){.grow,.pop{animation:none}}
+</style>
+
+<style>body{margin:0}</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Final Check: Sentence Analysis</h1>
+    <div class="byline">What Is That Word Doing? · John Archambault · ChalkLine</div>
+  </header>
+
+  <section class="card intro" id="intro">
+    <h2>Analyze six sentences you haven't seen</h2>
+    <p>Build each analysis yourself, working down the questions in order, the same way every lesson did. The diagram draws itself as you answer.</p>
+    <ul>
+      <li><b>Tap words on the tape</b> to answer the first questions: what's going on, who or what, whom or what, to whom or for whom, and any more ands.</li>
+      <li><b>Then go back to the beginning.</b> For each remaining word or phrase, choose what it's doing and which word it hangs from.</li>
+      <li><b>A sentence counts as correct</b> if you finish it with no more than one slip. If a choice is wrong, you'll get a hint and can try again.</li>
+      <li><b>To pass,</b> analyze at least five of the six sentences correctly. Each new attempt draws a different set.</li>
+    </ul>
+    <div><button class="primary" id="begin" type="button">Begin the final check</button></div>
+  </section>
+
+  <div id="work" hidden>
+    <div class="main">
+      <div class="stage">
+        <svg id="mat" viewBox="0 0 1000 640" role="img" aria-label="Your sentence analysis">
+          <defs><filter id="lift" x="-10%" y="-20%" width="120%" height="150%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity=".22"/></filter></defs>
+          <g id="tape"></g><g id="board"></g>
+        </svg>
+      </div>
+      <aside class="ladder" aria-label="The questions, in order"><h2>The questions, in order</h2><ol id="ladder"></ol></aside>
+    </div>
+    <section class="card ask" aria-live="polite" style="margin-top:16px">
+      <div class="eyebrow" id="eyebrow"></div>
+      <p class="q" id="q"></p>
+      <p class="how" id="how"></p>
+      <div class="choices" id="choices"></div>
+      <p class="fb" id="fb" hidden></p>
+      <div class="status"><span id="slips"></span><div class="dots" id="dots"></div></div>
+    </section>
+  </div>
+
+  <section class="card results" id="results" hidden></section>
+
+  <footer>Symbols follow John Archambault's practice: the red circle (the predicate) is largest; subjects and objects are black circles; adjectives are blue triangles; adverbs are orange; prepositional phrases sit in green parentheses.</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+// Sentence bank for the final check. Every key needs John's review.
+// P = predicate word index; S = subject word indexes (two = compound); you = understood you;
+// DO = direct object indexes (two = compound); IO = indirect object index; and = index of "and" in a compound.
+// mods: w = word indexes, k = kind, h = head (P, S, S2, DO, DO2, IO), q = arrow question.
+const BANK = {
+ 1:{t:"Leo gave his sister a kite.",P:1,S:[0],DO:[5],IO:3,mods:[{w:[2],k:"adjD",h:"IO",q:"whose?"},{w:[4],k:"art",h:"DO",q:"which one?"}]},
+ 2:{t:"Sam threw Ana the ball.",P:1,S:[0],DO:[4],IO:2,mods:[{w:[3],k:"art",h:"DO",q:"which one?"}]},
+ 3:{t:"Mom handed me two warm cookies.",P:1,S:[0],DO:[5],IO:2,mods:[{w:[3],k:"adjD",h:"DO",q:"how many?"},{w:[4],k:"adjA",h:"DO",q:"what kind?"}]},
+ 4:{t:"The children and their teacher planted tomatoes.",P:5,S:[1,4],and:2,DO:[6],mods:[{w:[0],k:"art",h:"S",q:"which one?"},{w:[3],k:"adjD",h:"S2",q:"whose?"}]},
+ 5:{t:"Grandpa baked bread and muffins.",P:1,S:[0],DO:[2,4],and:3,mods:[]},
+ 6:{t:"Kofi and Ella built a fort.",P:3,S:[0,2],and:1,DO:[5],mods:[{w:[4],k:"art",h:"DO",q:"which one?"}]},
+ 7:{t:"Run!",P:0,you:true,DO:[],mods:[]},
+ 8:{t:"Close the door.",P:0,you:true,DO:[2],mods:[{w:[1],k:"art",h:"DO",q:"which one?"}]},
+ 9:{t:"Bring your notebook.",P:0,you:true,DO:[2],mods:[{w:[1],k:"adjD",h:"DO",q:"whose?"}]},
+ 10:{t:"The hungry dog quickly ate three biscuits.",P:4,S:[2],DO:[6],mods:[{w:[0],k:"art",h:"S",q:"which one?"},{w:[1],k:"adjA",h:"S",q:"what kind?"},{w:[3],k:"advManner",h:"P"},{w:[5],k:"adjD",h:"DO",q:"how many?"}]},
+ 11:{t:"Yesterday our class wrote a long letter.",P:3,S:[2],DO:[6],mods:[{w:[0],k:"advTime",h:"P"},{w:[1],k:"adjD",h:"S",q:"whose?"},{w:[4],k:"art",h:"DO",q:"which one?"},{w:[5],k:"adjA",h:"DO",q:"what kind?"}]},
+ 12:{t:"The old farmer carefully fed the brown cows.",P:4,S:[2],DO:[7],mods:[{w:[0],k:"art",h:"S",q:"which one?"},{w:[1],k:"adjA",h:"S",q:"what kind?"},{w:[3],k:"advManner",h:"P"},{w:[5],k:"art",h:"DO",q:"which one?"},{w:[6],k:"adjA",h:"DO",q:"what kind?"}]},
+ 13:{t:"The tired runners slowly climbed the steep hill.",P:4,S:[2],DO:[7],mods:[{w:[0],k:"art",h:"S",q:"which one?"},{w:[1],k:"adjA",h:"S",q:"what kind?"},{w:[3],k:"advManner",h:"P"},{w:[5],k:"art",h:"DO",q:"which one?"},{w:[6],k:"adjA",h:"DO",q:"what kind?"}]},
+ 14:{t:"The girl with the red umbrella crossed the street.",P:6,S:[1],DO:[8],mods:[{w:[0],k:"art",h:"S",q:"which one?"},{w:[2,3,4,5],k:"ppAdj",h:"S",q:"which one?"},{w:[7],k:"art",h:"DO",q:"which one?"}]},
+ 15:{t:"The man in the boat caught three fish.",P:5,S:[1],DO:[7],mods:[{w:[0],k:"art",h:"S",q:"which one?"},{w:[2,3,4],k:"ppAdj",h:"S",q:"which one?"},{w:[6],k:"adjD",h:"DO",q:"how many?"}]},
+ 16:{t:"Jack planted a tree in the garden.",P:1,S:[0],DO:[3],mods:[{w:[2],k:"art",h:"DO",q:"which one?"},{w:[4,5,6],k:"ppAdvPlace",h:"P"}]},
+ 17:{t:"After lunch, the boys played soccer in the field.",P:4,S:[3],DO:[5],mods:[{w:[0,1],k:"ppAdvTime",h:"P"},{w:[2],k:"art",h:"S",q:"which one?"},{w:[6,7,8],k:"ppAdvPlace",h:"P"}]},
+ 18:{t:"The Romans built long roads across the empire.",P:2,S:[1],DO:[4],mods:[{w:[0],k:"art",h:"S",q:"which one?"},{w:[3],k:"adjA",h:"DO",q:"what kind?"},{w:[5,6,7],k:"ppAdvPlace",h:"P"}]},
+ 19:{t:"Hannibal led his army over the mountains.",P:1,S:[0],DO:[3],mods:[{w:[2],k:"adjD",h:"DO",q:"whose?"},{w:[4,5,6],k:"ppAdvPlace",h:"P"}]},
+};
+// One sentence from each pool, simplest first. Together they always cover: understood you, an indirect object,
+// a compound, adjectives of both kinds with an adverb, a phrase acting as an adjective, and a phrase acting as an adverb.
+const POOLS = [[7,8,9],[1,2,3],[4,5,6],[10,11,12,13],[14,15],[16,17,18,19]];
+
+(function(){
+// ---- Settings for ChalkLine ----
+const CONFIG = {
+  contactHours: "5",            // set the course's contact hours
+  recordEndpoint: "",           // optional: a form service address (e.g., Formspree) that emails you each completion
+  passCount: 5,
+  slipsAllowed: 1
+};
+const NS="http://www.w3.org/2000/svg";
+const C={red:"#B3261E",black:"#1C1C1C",blue:"#1E4F9C",ltblue:"#86BDE6",orange:"#E8952C",green:"#2F7D4A"};
+const reduce=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+if(/embed/.test(location.hash||"")) document.documentElement.classList.add("embed");
+
+const KINDS=[
+ ["art","Article acting as an adjective (D)"],["adjA","Adjective, attributive (A)"],["adjD","Adjective, determiner (D)"],
+ ["advTime","Adverb of time"],["advPlace","Adverb of place"],["advManner","Adverb of manner"],
+ ["ppAdj","Prepositional phrase acting as an adjective"],["ppAdvTime","Prepositional phrase acting as an adverb of time"],["ppAdvPlace","Prepositional phrase acting as an adverb of place"]
+];
+const KIND_NAME=Object.fromEntries(KINDS);
+const ADV_LABEL={advTime:"time · when?",advPlace:"place · where?",advManner:"manner · how?",ppAdvTime:"time · when?",ppAdvPlace:"place · where?"};
+const LADDER=["What's going on?","Who or what?","Whom or what?","To whom? For whom?","Any more ands?","Which one? What kind? How many? How much?","When? Where? How?"];
+
+const el=(t,a,p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e;};
+const $=id=>document.getElementById(id);
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+
+let set=[], si=0, S=null, results=[];
+
+// ---------- geometry ----------
+function layout(k){
+  const g={P:{x:500,y:330,r:64}};
+  if(k.you||!k.S||k.S.length===1) g.S={x:185,y:330,r:46}; else {g.S={x:185,y:232,r:44};g.S2={x:185,y:448,r:44};}
+  if(k.DO&&k.DO.length===2){g.DO={x:790,y:250,r:38};g.DO2={x:790,y:432,r:38};} else g.DO={x:790,y:330,r:40};
+  g.IO={x:745,y:165,r:30};
+  g.slots={S:[{x:80,y:490},{x:262,y:505}],S2:[{x:80,y:575}],DO:[{x:845,y:505},{x:945,y:440}],DO2:[{x:900,y:565}],IO:[{x:925,y:165}],P:[{x:650,y:556},{x:380,y:560}],ppS:[{x:430,y:112}]};
+  if(k.S&&k.S.length===2) g.slots.S=[{x:70,y:118}];
+  if(k.DO&&k.DO.length===2) g.slots.DO=[{x:935,y:150}];
+  return g;
+}
+
+// ---------- drawing ----------
+function edge(a,b,ra,rb){const dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy);return{x1:a.x+dx/L*ra,y1:a.y+dy/L*ra,ang:Math.atan2(dy,dx)*180/Math.PI,len:L-ra-rb};}
+function drawArrow(p,parent,anim){
+  const ra=(p.from.r||0)+4, rb=p.tri?34:p.phrase?30:((p.to.r||0)+2);
+  const g=edge(p.from,p.to,ra,rb);
+  const outer=el("g",{transform:`translate(${g.x1},${g.y1}) rotate(${g.ang})`},parent);
+  const inner=el("g",{class:anim?"grow":""},outer);
+  const L=g.len,W=p.w,tip=W*.7;
+  el("polygon",{points:`0,${-W/2} ${L-tip},${-W/2} ${L},0 ${L-tip},${W/2} 0,${W/2}`,fill:p.color},inner);
+  if(p.label){const flip=Math.abs(g.ang)>90,tx=(L-tip*.6)/2;
+    const t=el("text",{class:"arrowtext",x:tx,y:0,"text-anchor":"middle","dominant-baseline":"central",fill:p.ink,transform:flip?`rotate(180 ${tx} 0)`:""},inner);
+    t.textContent=p.label; if(W<26)t.setAttribute("font-size","13.5");}
+}
+function drawCircle(p,parent,anim){
+  const g=el("g",{class:anim?"pop":""},parent);
+  if(p.hollow) el("circle",{cx:p.at.x,cy:p.at.y,r:p.at.r-2.5,fill:"none",stroke:C.black,"stroke-width":5},g);
+  else el("circle",{cx:p.at.x,cy:p.at.y,r:p.at.r,fill:p.fill},g);
+}
+function drawTri(p,parent,anim){
+  const s=p.size,h=s*.87,x=p.at.x,y=p.at.y-22;
+  const g=el("g",{class:anim?"pop":""},parent);
+  el("polygon",{points:`${x},${y-h} ${x-s/2},${y} ${x+s/2},${y}`,fill:p.fill},g);
+}
+function crescent(r){return `M ${-r},0 A ${r} ${r} 0 0 1 ${r},0 A ${r} ${r*.62} 0 0 0 ${-r},0 Z`;}
+function drawCard(p,parent,anim){
+  const g=el("g",{},parent);
+  const t=el("text",{class:"cardtext","font-size":24,x:0,y:1,"text-anchor":"middle","dominant-baseline":"central"},g);t.textContent=p.text;
+  const tw=t.getComputedTextLength(),w=tw+30,h=46;
+  g.insertBefore(el("rect",{x:-w/2,y:-h/2,width:w,height:h,fill:"#fff",stroke:"#BDB7A6","stroke-width":1,filter:"url(#lift)"}),t);
+  if(p.tag){const tg=el("text",{class:"tag",x:w/2+8,y:1,"dominant-baseline":"central"},g);tg.textContent=p.tag;}
+  if(p.underline) el("line",{x1:-tw/2,y1:15,x2:tw/2,y2:15,stroke:C.red,"stroke-width":2.5},g);
+  let cx=Math.min(Math.max(p.at.x,15+w/2),985-w/2-(p.tag?24:0));
+  const cy=p.below?p.at.y+p.at.r+30:p.phrase?p.at.y:p.tri?p.at.y+14:(p.at.r?p.at.y-p.at.r-30:p.at.y);
+  const target=`translate(${cx}px,${cy}px)`;
+  if(anim&&!reduce&&p.from!=null){g.animate([{transform:`translate(${p.from}px,44px) scale(.7)`,opacity:.3},{transform:`translate(${p.from}px,92px) scale(.95)`,opacity:1,offset:.25},{transform:target}],{duration:900,delay:250,easing:"cubic-bezier(.3,.7,.2,1)",fill:"both"});}
+  else g.style.transform=target;
+  if(p.parens){const off=w/2+14;[[-1,-90],[1,90]].forEach(([s,rot])=>{const b=el("path",{d:crescent(25),fill:C.green},parent);
+    const end=`translate(${cx+s*off}px,${cy}px) rotate(${rot}deg)`;
+    if(anim&&!reduce) b.animate([{transform:`translate(${cx+s*42}px,${cy-90}px) rotate(0deg)`,opacity:0},{transform:end,opacity:1}],{duration:1100,delay:700,easing:"cubic-bezier(.4,0,.2,1)",fill:"both"}); else b.style.transform=end;});}
+}
+
+let tapePos=[];
+function drawTape(){
+  const tg=$("tape"); tg.innerHTML="";
+  el("path",{d:"M14,22 L986,22 L982,30 L986,38 L982,46 L986,54 L986,66 L14,66 L18,58 L14,50 L18,42 L14,34 L18,26 Z",fill:"#FFFEF7",stroke:"#D8D2BF","stroke-width":1,filter:"url(#lift)"},tg);
+  const W=S.words; let size=W.length===1?26:21,gap=18,widths=[];
+  const pr=el("text",{class:"tapeword","font-size":size,x:0,y:-100},tg);
+  W.forEach(w=>{pr.textContent=w;widths.push(pr.getComputedTextLength());});pr.remove();
+  let total=widths.reduce((a,b)=>a+b,0)+gap*(W.length-1); const sc=Math.min(1,920/total);
+  size*=sc;gap*=sc;widths=widths.map(w=>w*sc);total*=sc;
+  let x=500-total/2; tapePos=[];
+  W.forEach((w,i)=>{
+    const g=el("g",{class:"tapehit","data-i":i,role:"button",tabindex:0,"aria-label":`Word: ${w}`},tg);
+    el("rect",{class:"hit",x:x-5,y:26,width:widths[i]+10,height:36,rx:3,fill:"#fff","fill-opacity":0},g);
+    const cur=S.highlight&&S.highlight.includes(i);
+    if(cur) el("rect",{x:x-4,y:28,width:widths[i]+8,height:32,rx:3,fill:"#F3D36B","fill-opacity":.6},g);
+    const t=el("text",{class:"tapeword","font-size":size,x:x,y:44,"dominant-baseline":"central",opacity:S.used.has(i)&&!cur?.45:1},g);t.textContent=w;
+    if(S.used.has(i)) el("line",{x1:x-2,y1:58,x2:x+widths[i]+2,y2:30,stroke:"#7A7466","stroke-width":1.6},g);
+    if(S.antenna===i){[-1,1].forEach(s=>{el("line",{x1:x+widths[i]/2+s*6,y1:24,x2:x+widths[i]/2+s*14,y2:7,stroke:"#3A3428","stroke-width":2.5,"stroke-linecap":"round"},g);el("circle",{cx:x+widths[i]/2+s*14,cy:6,r:4,fill:C.red},g);});}
+    g.addEventListener("click",()=>tap(i));
+    g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();tap(i);}});
+    tapePos.push(x+widths[i]/2); x+=widths[i]+gap;
+  });
+}
+function drawBoard(){
+  const b=$("board"); b.innerHTML="";
+  const ar=el("g",{},b),sh=el("g",{},b),cd=el("g",{},b);
+  S.pieces.forEach(p=>{const a=p.fresh;
+    if(p.t==="arrow")drawArrow(p,ar,a); else if(p.t==="circle")drawCircle(p,sh,a); else if(p.t==="tri")drawTri(p,sh,a);
+    else if(p.t==="card")drawCard(p,cd,a); else if(p.t==="label"){const t=el("text",{class:"cardtext","font-size":24,x:p.at.x,y:p.at.y-p.at.r-22,"text-anchor":"middle","dominant-baseline":"central"},cd);t.textContent=p.text;}
+    p.fresh=false;});
+}
+function addPieces(list){list.forEach(p=>{p.fresh=true;S.pieces.push(p);});}
+const fromX=ws=>(Math.min(...ws.map(i=>tapePos[i]))+Math.max(...ws.map(i=>tapePos[i])))/2;
+const txt=ws=>ws.map(i=>S.words[i]).join(" ");
+
+// ---------- placing answers ----------
+function placeP(){const k=S.k,g=S.g,i=k.P;S.used.add(i);
+  addPieces([{t:"circle",at:g.P,fill:C.red},{t:"card",text:S.words[i],at:g.P,underline:true,from:tapePos[i]}]);S.heads.P={at:g.P,label:S.words[i]};}
+function placeS(which,i){const g=S.g,at=g[which];
+  if(i==="you"){addPieces([{t:"arrow",from:g.P,to:at,w:34,color:C.black,label:"who or what?",ink:"#fff"},{t:"circle",at,hollow:true},{t:"label",at,text:"(you)"}]);S.heads.S={at,label:"(you)"};return;}
+  S.used.add(i);addPieces([{t:"arrow",from:g.P,to:at,w:34,color:C.black,label:"who or what?",ink:"#fff"},{t:"circle",at,fill:C.black},{t:"card",text:S.words[i],at,from:tapePos[i]}]);S.heads[which]={at,label:S.words[i]};}
+function placeDO(which,i){const g=S.g,at=g[which];S.used.add(i);
+  addPieces([{t:"arrow",from:g.P,to:at,w:30,color:C.black,label:"whom or what?",ink:"#fff"},{t:"circle",at,fill:C.black},{t:"card",text:S.words[i],at,from:tapePos[i]}]);S.heads[which]={at,label:S.words[i]};}
+function placeIO(i){const g=S.g,at=g.IO;S.used.add(i);
+  addPieces([{t:"arrow",from:g.P,to:at,w:28,color:C.black,label:"to whom? for whom?",ink:"#fff"},{t:"circle",at,fill:C.black},{t:"card",text:S.words[i],at,from:tapePos[i]}]);S.heads.IO={at,label:S.words[i]};}
+function placeMod(m){const g=S.g,head=S.heads[m.h].at;m.w.forEach(i=>S.used.add(i));
+  const fx=fromX(m.w),text=txt(m.w);
+  if(m.k==="ppAdj"){const at=(g.slots.ppS.shift())||{x:430,y:112};addPieces([{t:"arrow",from:head,to:at,w:24,color:C.blue,label:m.q||"which one?",ink:"#fff",phrase:true},{t:"card",text,at,parens:true,phrase:true,from:fx}]);return;}
+  if(m.k.startsWith("ppAdv")){const at=g.slots.P.shift();addPieces([{t:"arrow",from:g.P,to:at,w:26,color:C.orange,label:ADV_LABEL[m.k],ink:"#2A1B05",phrase:true},{t:"card",text,at,parens:true,phrase:true,from:fx}]);return;}
+  if(m.k.startsWith("adv")){const slot=g.slots.P.shift();const at={x:slot.x,y:slot.y-58,r:22};addPieces([{t:"arrow",from:g.P,to:at,w:26,color:C.orange,label:ADV_LABEL[m.k],ink:"#2A1B05"},{t:"circle",at,fill:C.orange},{t:"card",text,at,below:true,from:fx}]);return;}
+  const at=(g.slots[m.h]||[]).shift()||{x:head.x+120,y:head.y+150};
+  const art=m.k==="art";
+  addPieces([{t:"arrow",from:head,to:at,w:24,color:C.blue,label:m.q,ink:"#fff",tri:true},{t:"tri",at,size:art?22:30,fill:art?C.ltblue:C.blue},{t:"card",text,at,tri:true,tag:m.k==="adjA"?"A":"D",from:fx}]);
+}
+
+// ---------- the flow ----------
+function startSentence(){
+  const id=set[si],k=BANK[id];
+  S={id,k,words:k.t.split(" "),g:layout(k),used:new Set(),pieces:[],heads:{},slips:0,tries:0,ladder:LADDER.map(()=>[]),asked:new Set(),steps:[],stepIdx:0,highlight:null,antenna:null};
+  // build the step list
+  const st=S.steps;
+  st.push({kind:"P",lad:0});
+  st.push({kind:"S",lad:1});
+  if(!k.you) {}
+  st.push({kind:"DO",lad:2});
+  if(k.DO&&k.DO.length) st.push({kind:"IO",lad:3});
+  st.push({kind:"AND",lad:4});
+  k.mods.slice().sort((a,b)=>a.w[0]-b.w[0]).forEach(m=>{st.push({kind:"TYPE",m,lad:m.k.startsWith("adv")||m.k.startsWith("ppAdv")?6:5});st.push({kind:"HEAD",m,lad:m.k.startsWith("adv")||m.k.startsWith("ppAdv")?6:5});});
+  st.push({kind:"DONE"});
+  drawTape();drawBoard();renderStep();
+}
+const cur=()=>S.steps[S.stepIdx];
+const verb=()=>S.words[S.k.P].replace(/[.!?,]/g,"").toLowerCase();
+function renderStep(){
+  const s=cur(),k=S.k;
+  $("eyebrow").textContent=`Sentence ${si+1} of ${set.length}`;
+  $("fb").hidden=true;
+  const ch=$("choices");ch.innerHTML="";
+  S.highlight=null;
+  const btn=(label,fn,primary)=>{const b=document.createElement("button");b.type="button";b.textContent=label;if(primary)b.className="primary";b.addEventListener("click",fn);ch.appendChild(b);return b;};
+  if(s.kind==="P"){$("q").textContent="What's going on in this sentence?";$("how").textContent="Tap the one word on the tape that answers.";}
+  else if(s.kind==="S"){$("q").textContent=`Who or what is doing it: “${verb()}”?`;$("how").textContent="Tap the word on the tape. If no word answers, the subject may not be written.";btn("It isn't written: understood you",()=>answer("you"));}
+  else if(s.kind==="DO"){$("q").textContent="Whom or what?";$("how").textContent="Tap the noun being acted upon, or choose no answer.";btn("No answer",()=>answer("none"));}
+  else if(s.kind==="IO"){$("q").textContent="To whom or for whom?";$("how").textContent="Tap the word that answers, or choose no answer.";btn("No answer",()=>answer("none"));}
+  else if(s.kind==="AND"){$("q").textContent="Any more ands?";$("how").textContent="If there's an and, tap the word it adds to the skeleton. If not, the skeleton is finished.";btn("No more ands: the skeleton is finished",()=>answer("none"));}
+  else if(s.kind==="TYPE"){S.highlight=s.m.w;$("q").textContent=`Back to the beginning. What is “${txt(s.m.w)}” doing?`;$("how").textContent="Choose the role it plays.";KINDS.forEach(([key,label])=>btn(label,()=>answer(key)));}
+  else if(s.kind==="HEAD"){S.highlight=s.m.w;$("q").textContent=`Which word does “${txt(s.m.w)}” hang from?`;$("how").textContent="Put it next to the word you think it describes and see if it sounds right.";
+    Object.entries(S.heads).forEach(([h,v])=>btn(v.label.replace(/[.!?,]$/,""),()=>answer(h)));}
+  else if(s.kind==="DONE"){finishSentence();return;}
+  // ladder
+  renderLadder(s.lad);
+  $("slips").textContent=`Slips on this sentence: ${S.slips}`;
+  renderDots();
+  drawTape();
+}
+function renderLadder(now){
+  const ol=$("ladder");ol.innerHTML="";
+  LADDER.forEach((q,i)=>{const li=document.createElement("li");if(i===now)li.className="now";
+    const a=S.ladder[i];li.innerHTML=`<span class="lq"></span><span class="la"></span>`;li.querySelector(".lq").textContent=q;
+    const la=li.querySelector(".la");if(a.length){la.textContent=a.join(" · ");}else if(S.asked.has(i)){la.className="la none";la.textContent="no answer";}
+    ol.appendChild(li);});
+}
+function renderDots(){
+  const d=$("dots");d.innerHTML="";
+  set.forEach((_,i)=>{const s=document.createElement("span");s.className="dot"+(i===si?" on":results[i]?(results[i].ok?" ok":" miss"):"");d.appendChild(s);});
+}
+function tap(i){const s=cur();if(!s||!["P","S","DO","IO","AND"].includes(s.kind))return;if(S.used.has(i)&&s.kind!=="AND")return;answer(i);}
+
+function hintFor(s){
+  const k=S.k;
+  switch(s.kind){
+    case "P": return "Ask the detective's question: what's going on? Only one word answers, and it's a verb.";
+    case "S": return "Who or what is doing it? It's the noun doing the predicate. If no word in the sentence answers, the subject may be understood.";
+    case "DO": return "Which noun is being acted upon? If nothing receives the action, choose no answer.";
+    case "IO": return "Ask to whom or for whom. If no word answers that question, choose no answer.";
+    case "AND": return "Look for and on the tape. It tells you there's something else, and that you're not done yet.";
+    case "TYPE": return "Ask the question it answers: what kind, which one, how many, how much? Or when, where, how? And is it one word, or a phrase that pops from P to OP?";
+    case "HEAD": return "Put it right next to the word you think it describes and see if it sounds right.";
+  }
+}
+function correctFor(s,a){
+  const k=S.k;
+  if(s.kind==="P") return a===k.P;
+  if(s.kind==="S") return k.you?a==="you":(k.S||[]).includes(a);
+  if(s.kind==="DO") return (k.DO||[]).length?k.DO.includes(a):a==="none";
+  if(s.kind==="IO") return k.IO!=null?a===k.IO:a==="none";
+  if(s.kind==="AND"){const rest=compoundRest();return rest==null?a==="none":(a===rest||a===k.and);}
+  if(s.kind==="TYPE") return a===s.m.k||(s.m.k==="art"&&a==="adjD");
+  if(s.kind==="HEAD") return a===s.m.h;
+}
+function compoundRest(){const k=S.k;
+  if(k.S&&k.S.length===2) return k.S.find(i=>!S.used.has(i));
+  if(k.DO&&k.DO.length===2) return k.DO.find(i=>!S.used.has(i));
+  return null;}
+function apply(s,a){
+  const k=S.k;
+  if(s.kind==="P"){placeP();S.ladder[0].push(S.words[k.P]);}
+  else if(s.kind==="S"){if(k.you){placeS("S","you");S.ladder[1].push("(you)");}
+    else{const first=k.S.length===2?(a===k.S[0]||a===k.S[1]?a:k.S[0]):k.S[0];
+      const which=(k.S.length===2&&first===k.S[1])?"S2":"S";placeS(which,first);S.ladder[1].push(S.words[first]);}}
+  else if(s.kind==="DO"){if((k.DO||[]).length){const first=k.DO.includes(a)?a:k.DO[0];const which=(k.DO.length===2&&first===k.DO[1])?"DO2":"DO";placeDO(which,first);S.ladder[2].push(S.words[first].replace(/[.!?,]$/,""));}else S.asked.add(2);}
+  else if(s.kind==="IO"){if(k.IO!=null){placeIO(k.IO);S.ladder[3].push(S.words[k.IO]);}else S.asked.add(3);}
+  else if(s.kind==="AND"){const rest=compoundRest();
+    if(rest==null){S.asked.add(4);}
+    else{S.used.add(k.and);S.antenna=k.and;
+      if(k.S&&k.S.length===2){const which=S.heads.S?"S2":"S";placeS(which,rest);S.ladder[1].push(S.words[rest]);}
+      else{const which=S.heads.DO?"DO2":"DO";placeDO(which,rest);S.ladder[2].push(S.words[rest].replace(/[.!?,]$/,""));}
+      S.ladder[4].push("and: "+S.words[rest].replace(/[.!?,]$/,""));}}
+  else if(s.kind==="TYPE"){/* nothing drawn until the head is chosen */}
+  else if(s.kind==="HEAD"){placeMod(s.m);S.ladder[s.lad].push(txt(s.m.w).replace(/[.!?,]$/,""));}
+  if(s.kind==="S"||s.kind==="DO") S.asked.add(s.lad);
+}
+function confirmText(s){
+  const k=S.k;
+  switch(s.kind){
+    case "P": return `Right. “${S.words[k.P]}” is the simple predicate.`;
+    case "S": return k.you?"Right. The subject isn't written: it's the understood you, a hollow circle.":"Right. That's the simple subject, the noun doing the predicate.";
+    case "DO": return (k.DO||[]).length?"Right. That's the direct object, straight across.":"Right. Nothing is being acted upon, so there's no direct object.";
+    case "IO": return k.IO!=null?"Right. That's the indirect object, up on the diagonal.":"Right. No indirect object here.";
+    case "AND": return compoundRest()==null&&S.antenna==null?"Right. The skeleton is finished. Now back to the beginning.":"Right. And tells you there's something else: a compound.";
+    case "TYPE": return `Right: ${KIND_NAME[s.m.k].toLowerCase()}.`;
+    case "HEAD": return "Right. It hangs from that word.";
+  }
+}
+function answer(a){
+  const s=cur(); if(!s) return;
+  const ok=correctFor(s,a);
+  if(ok){
+    const msg=(s.kind==="AND")?null:confirmText(s);
+    apply(s,a); const andMsg=s.kind==="AND"?confirmText(s):null;
+    S.tries=0; S.stepIdx++; drawBoard(); renderStep();
+    const f=$("fb");f.className="fb";f.textContent=msg||andMsg;f.hidden=false;
+  } else {
+    S.tries++; if(S.tries===1) S.slips++;
+    const f=$("fb");
+    if(S.tries>=2){ apply(s,correctAnswerFor(s)); S.tries=0; S.stepIdx++; drawBoard(); renderStep();
+      f.className="fb no";f.textContent="Not quite. Here's how it goes; take a look and keep going.";f.hidden=false; }
+    else { f.className="fb no";f.textContent="Not quite. "+hintFor(s);f.hidden=false;$("slips").textContent=`Slips on this sentence: ${S.slips}`; }
+  }
+}
+function correctAnswerFor(s){const k=S.k;
+  if(s.kind==="P")return k.P; if(s.kind==="S")return k.you?"you":k.S[0];
+  if(s.kind==="DO")return (k.DO||[]).length?k.DO[0]:"none"; if(s.kind==="IO")return k.IO!=null?k.IO:"none";
+  if(s.kind==="AND")return compoundRest()==null?"none":compoundRest(); if(s.kind==="TYPE")return s.m.k; if(s.kind==="HEAD")return s.m.h;}
+
+function finishSentence(){
+  const ok=S.slips<=CONFIG.slipsAllowed;
+  results[si]={id:S.id,ok,slips:S.slips,t:S.k.t};
+  S.highlight=null;drawTape();renderLadder(-1);renderDots();
+  $("eyebrow").textContent=`Sentence ${si+1} of ${set.length}`;
+  $("q").textContent=ok?"Every word has a role. Sentence complete.":"Sentence complete, with more than one slip.";
+  $("how").textContent=ok?"This one counts as correct.":"This one won't count toward passing, but take a look at the finished analysis before moving on.";
+  $("slips").textContent=`Slips on this sentence: ${S.slips}`;
+  const ch=$("choices");ch.innerHTML="";
+  const b=document.createElement("button");b.type="button";b.className="primary";b.textContent=si<set.length-1?"Next sentence":"See my results";
+  b.addEventListener("click",()=>{si++; if(si<set.length) startSentence(); else showResults();});ch.appendChild(b);b.focus();
+}
+function showResults(){
+  $("work").hidden=true;const r=$("results");r.hidden=false;
+  const n=results.filter(x=>x.ok).length, pass=n>=CONFIG.passCount;
+  r.innerHTML=`<div class="eyebrow">Your results</div><h2>${pass?"You passed the final check.":"Not quite yet."}</h2>
+  <p>You analyzed <b>${n} of ${set.length}</b> sentences correctly. Passing takes ${CONFIG.passCount}.</p>
+  <table><tr><th>Sentence</th><th>Slips</th><th>Result</th></tr>${results.map(x=>`<tr><td class="s"></td><td>${x.slips}</td><td>${x.ok?"Correct":"Didn't count"}</td></tr>`).join("")}</table>`;
+  r.querySelectorAll("td.s").forEach((td,i)=>td.textContent=results[i].t);
+  if(pass){
+    const f=document.createElement("form");f.className="form";f.innerHTML=`<h2 style="font-size:1.2rem">Your certificate</h2>
+    <label for="cname">Your name, as it should appear on the certificate<input id="cname" required autocomplete="name"></label>
+    <label for="cemail">Email (optional, for ChalkLine's completion record)<input id="cemail" type="email" autocomplete="email"></label>
+    <div><button class="primary" type="submit">Download my certificate</button></div><p class="small" id="certnote"></p>`;
+    f.addEventListener("submit",e=>{e.preventDefault();makeCertificate($("cname").value.trim(),$("cemail").value.trim(),n);});
+    r.appendChild(f);
+  } else {
+    const p=document.createElement("p");p.textContent="Review the lessons where you slipped, then try a new set. Each attempt draws different sentences.";r.appendChild(p);
+    const b=document.createElement("button");b.type="button";b.className="primary";b.textContent="Try a new set";b.addEventListener("click",begin);const d=document.createElement("div");d.appendChild(b);r.appendChild(d);
+  }
+}
+function certNumber(){const d=new Date(),pad=x=>String(x).padStart(2,"0");return `CL-SA-${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}-${Math.random().toString(36).slice(2,6).toUpperCase()}`;}
+function makeCertificate(name,email,n){
+  const note=$("certnote"); if(!name){note.textContent="Enter your name first.";return;}
+  const num=certNumber(), date=new Date().toLocaleDateString("en-US",{year:"numeric",month:"long",day:"numeric"});
+  try{
+    const {jsPDF}=window.jspdf; const doc=new jsPDF({orientation:"landscape",unit:"pt",format:"letter"});
+    const W=792,H=612; doc.setDrawColor(78,107,56);doc.setLineWidth(3);doc.rect(28,28,W-56,H-56);doc.setLineWidth(.8);doc.rect(38,38,W-76,H-76);
+    doc.setFont("times","bold");doc.setFontSize(13);doc.setTextColor(78,107,56);doc.text("CHALKLINE",W/2,90,{align:"center"});
+    doc.setFontSize(34);doc.setTextColor(35,39,31);doc.text("Certificate of Completion",W/2,145,{align:"center"});
+    doc.setFont("times","normal");doc.setFontSize(14);doc.text("This certifies that",W/2,195,{align:"center"});
+    doc.setFont("times","bold");doc.setFontSize(30);doc.text(name,W/2,245,{align:"center"});doc.setDrawColor(150);doc.line(W/2-200,258,W/2+200,258);
+    doc.setFont("times","normal");doc.setFontSize(14);
+    doc.text("has completed the course",W/2,292,{align:"center"});
+    doc.setFont("times","bold");doc.setFontSize(18);doc.text("What Is That Word Doing? Sentence Analysis for Upper Elementary",W/2,322,{align:"center"});
+    doc.setFont("times","normal");doc.setFontSize(14);doc.text("with John Archambault, including a passing final check in sentence analysis",W/2,348,{align:"center"});
+    doc.setFontSize(12);
+    doc.text(`Contact hours: ${CONFIG.contactHours}`,120,420);doc.text(`Date: ${date}`,120,442);doc.text(`Certificate number: ${num}`,120,464);
+    doc.line(470,450,690,450);doc.text("ChalkLine",580,468,{align:"center"});
+    doc.setFontSize(9);doc.setTextColor(102,108,94);
+    doc.text("ChalkLine reports professional development in contact hours. ChalkLine is not an IACET accredited provider.",W/2,540,{align:"center"});
+    doc.save(`ChalkLine_Certificate_${name.replace(/[^A-Za-z0-9]+/g,"_")}.pdf`);
+    note.textContent=`Certificate number ${num}. If the download didn't start, open this check on the course site and try again.`;
+  }catch(err){note.textContent="The certificate couldn't be created here. Open this check on the course site and try again.";}
+  if(CONFIG.recordEndpoint){
+    fetch(CONFIG.recordEndpoint,{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},
+      body:JSON.stringify({name,email,date,certificate:num,score:`${n} of ${set.length}`,sentences:results.map(x=>`${x.t} (${x.ok?"correct":"did not count"}, ${x.slips} slips)`).join("; ")})}).catch(()=>{});
+  }
+}
+function begin(){
+  set=POOLS.map(p=>shuffle(p)[0]); si=0; results=[];
+  $("intro").hidden=true;$("results").hidden=true;$("work").hidden=false;$("results").innerHTML="";
+  startSentence(); window.scrollTo(0,0);
+}
+$("begin").addEventListener("click",begin);
+const fontsReady=(document.fonts&&document.fonts.load)?Promise.all([document.fonts.load('21px "Playwrite US Trad"'),document.fonts.load('24px "Playwrite US Trad"')]).catch(()=>{}):Promise.resolve();
+fontsReady.then(()=>{if(S){drawTape();drawBoard();}});
+})();
+</script>
+
+</body>
+</html>
